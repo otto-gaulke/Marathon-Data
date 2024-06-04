@@ -1,5 +1,4 @@
 @echo off
-call C:\Users\16125\anaconda3\Scripts\activate.c~
-cd C:\Users\16125\Desktop\Marathon Data\Marathon
+cd /d "%~dp0"
 python master_file.py
 pause
