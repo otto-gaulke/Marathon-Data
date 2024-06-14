@@ -199,47 +199,52 @@ def edit():
     print('\nEdit')
 
     while True:
-        csv = input('\nEnter the name of the file you would like to edit '
-                    '(ending in .csv): ')
+        inp = input('\nEnter the name of the file you would like to edit '
+                    '(ending in .csv),\nthe desired name of the edited file '
+                    '(ending in .csv),\nthe date of the entry '
+                    '(MM/DD/YYYY),\nthe duration of the entry '
+                    '(HH:MM:SS),\nthe pace of the entry '
+                    '(HH:MM:SS),\nthe distance (miles) '
+                    'of the entry,\nthe average heart rate of the entry,\n'
+                    'all comma separated without spaces\n'
+                    '(ex. example_orig.csv,example_save.csv,02/22/2024,'
+                    '00:28:00,00:09:30,3,160): ')
+
+        inp = inp.split(',')
+        csv, exp, date_raw, time_raw = inp[0], inp[1], inp[2], inp[3]
+        pace_raw, distance, hr = inp[4], inp[5], inp[6]
+
+        check = True
 
         if csv[-4:] == '.csv':
             check = file_check(filename=csv,
                                extension='.csv')
-
-            if check is True:
-                break
-            else:
-                print('\nInvalid entry...')
         else:
-            print('\nInvalid entry...')
+            print('\nInvalid file entry... file name must end in .csv')
+            continue
 
-    while True:
-        exp = input('\nEnter the desired name '
-                    'of the edited file (ending in .csv): ')
+        if check is False:
+            print('\nInvalid file entry... file does not exist')
+            continue
 
-        if csv[-4:] == '.csv':
+        if exp[-4:] == '.csv':
             check = file_check(filename=exp,
                                extension='.csv')
-
-            if check is True:
-                cont = warning()
-
-                if cont is True:
-                    break
-            else:
-                print('\nInvalid entry...')
         else:
-            print('\nInvalid entry...')
+            print('\nInvalid save entry... save name must end in .csv')
+            continue
 
-    while True:
-        date_raw = input('\nEnter the date '
-                         'of the entry (MM/DD/YYYY, ex. 02/08/2000): ')
+        if check is True:
+            cont = warning()
 
-        check = True
+            if cont is False:
+                continue
 
         if not (date_raw[2] == '/' and date_raw[5] == '/'):
-            print('\nInvalid date entry...')
+            print('\nInvalid date entry... enter date in MM/DD/YYYY format')
             continue
+
+        check = True
 
         month = date_raw[0:2]
         day = date_raw[3:5]
@@ -254,7 +259,7 @@ def edit():
 
         if (not (0 <= month <= 12 and 0 <= day <= 31 and 0 < year)
                 or check is False):
-            print('\nInvalid date entry...')
+            print('\nInvalid date entry... enter date in MM/DD/YYYY format')
             continue
 
         try:
@@ -262,20 +267,11 @@ def edit():
                           month=month,
                           day=day)
         except ValueError:
-            print('\nInvalid date entry...')
+            print('\nInvalid date entry... enter date in MM/DD/YYYY format')
             continue
 
-        if check is True:
-            break
-
-    while True:
-        time_raw = input('\nEnter the duration '
-                         'of the entry (HH:MM:SS, ex. 01:32:23): ')
-
-        check = True
-
         if not (time_raw[2] == ':' and time_raw[5] == ':'):
-            print('\nInvalid date entry...')
+            print('\nInvalid date entry... enter time in HH:MM:SS format')
             continue
 
         hours = time_raw[:-6]
@@ -291,7 +287,7 @@ def edit():
 
         if (not (0 <= hours and 0 <= minutes <= 59 and 0 <= seconds <= 59)
                 or check is False):
-            print('\nInvalid time entry...')
+            print('\nInvalid time entry... enter time in HH:MM:SS format')
             continue
 
         try:
@@ -299,20 +295,11 @@ def edit():
                           minute=minutes,
                           second=seconds)
         except ValueError:
-            print('\nInvalid time entry...')
+            print('\nInvalid time entry... enter time in HH:MM:SS format')
             continue
 
-        if check is True:
-            break
-
-    while True:
-        pace_raw = input('\nEnter the pace '
-                         'of the entry (HH:MM:SS, ex. 01:32:32): ')
-
-        check = True
-
         if not (pace_raw[2] == ':' and pace_raw[5] == ':'):
-            print('\nInvalid date entry...')
+            print('\nInvalid pace entry... enter pace in HH:MM:SS format')
             continue
 
         p_hours = pace_raw[:-6]
@@ -328,7 +315,7 @@ def edit():
 
         if not (0 <= p_hours and 0 <= p_minutes <= 59
                 and 0 <= p_seconds <= 59) or check is False:
-            print('\nInvalid pace entry...')
+            print('\nInvalid pace entry... enter pace in HH:MM:SS format')
             continue
 
         try:
@@ -336,16 +323,8 @@ def edit():
                           minute=p_minutes,
                           second=p_seconds)
         except ValueError:
-            print('\nInvalid pace entry...')
+            print('\nInvalid pace entry... enter pace in HH:MM:SS format')
             continue
-
-        if check is True:
-            break
-
-    while True:
-        distance = input('\nEnter the distance (miles) of the entry: ')
-
-        check = True
 
         distance, check = int_check(value=distance,
                                     check=check)
@@ -353,14 +332,6 @@ def edit():
         if distance < 0 or check is False:
             print('\nInvalid distance entry...')
             continue
-
-        if check is True:
-            break
-
-    while True:
-        hr = input('\nEnter the average heart rate of the entry: ')
-
-        check = True
 
         hr, check = int_check(value=hr,
                               check=check)
