@@ -5,12 +5,12 @@ import data_parser as dp
 
 
 def combine_all(exp_name):
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\tcx')
 
     df = pd.DataFrame()
 
     files = os.listdir(os.getcwd())
-    files = [x for x in files if x[-4:] == '.tcx']
 
     for file in files:
         print(f'Processing {file}...')
@@ -23,22 +23,43 @@ def combine_all(exp_name):
                    ascending=True,
                    inplace=True)
 
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
+
+    files = os.listdir(os.getcwd())
+
     if exp_name in files:
         os.remove(os.getcwd() + '\\' + exp_name)
 
     df.to_csv(exp_name,
               index=False)
 
-
-def add_data(filename, exp_name, tcx):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+def add_data(filename, exp_name, tcx=[]):
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
 
     df = pd.read_csv(filename)
 
-    temp = dp.convert(dp.tcx_parse(tcx))
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\tcx')
 
-    df = pd.concat([df, temp],
-                   axis=0)
+    for file in tcx:
+        temp = dp.convert(dp.tcx_parse(file))
+
+        df = pd.concat([df, temp],
+                       axis=0)
+
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    df.sort_values(by=['Date', 'Time (Seconds)'],
+                   ascending=True,
+                   inplace=True)
+
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
 
     files = os.listdir(os.getcwd())
 
@@ -48,25 +69,36 @@ def add_data(filename, exp_name, tcx):
     df.to_csv(exp_name,
               index=False)
 
-
-def single_file(exp_name, tcx):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    df = dp.convert(dp.tcx_parse(os.getcwd() + '\\' + tcx))
 
-    files = os.listdir(os.getcwd())
+def single_file(exp_name=[], tcx=[]):
+    for index, file in enumerate(tcx):
+        os.chdir('..')
+        os.chdir(os.getcwd() + '\\tcx')
 
-    if exp_name in files:
-        os.remove(os.getcwd() + '\\' + exp_name)
+        print(f'Processing {file}...')
+        df = dp.convert(dp.tcx_parse(os.getcwd() + '\\' + file))
 
-    df.to_csv(exp_name,
-              index=False)
+        os.chdir('..')
+        os.chdir(os.getcwd() + '\\csv')
+
+        files = os.listdir(os.getcwd())
+
+        if exp_name in files:
+            os.remove(os.getcwd() + '\\' + exp_name[index])
+
+        df.to_csv(exp_name[index],
+                  index=False)
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 def data_entry(filename, exp_name, month, day, year,
                hours, minutes, seconds, pace_hours,
                pace_minutes, pace_seconds, distance_miles, avg_hr):
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
 
     files = os.listdir(os.getcwd())
 
@@ -94,7 +126,8 @@ def data_entry(filename, exp_name, month, day, year,
            'Time (Hour-Minute-Second)': [time],
            'Distance (Meters)': [distance_m],
            'Distance (Kilometers)': [distance_km],
-           'Distance (Miles)': [distance_miles], 'Pace (Minutes / Mile)': [pace],
+           'Distance (Miles)': [distance_miles],
+           'Pace (Minutes / Mile)': [pace],
            'Heart Rate': [avg_hr]}
 
     df = pd.concat([df, pd.DataFrame(new)],
@@ -111,3 +144,5 @@ def data_entry(filename, exp_name, month, day, year,
 
     df.to_csv(exp_name,
               index=False)
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
