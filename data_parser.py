@@ -71,7 +71,7 @@ def convert(df):
             'Elevation (Meters)', 'Elevation Change (Meters)',
             'Elevation (Feet)', 'Elevation Change (Feet)', 'Distance (Meters)',
             'Distance (Kilometers)', 'Distance (Miles)',
-            'Pace (Minutes / Mile)', 'Heart Rate']
+            'Pace (Minutes / Mile)', 'Pace (Numeric)', 'Heart Rate']
 
     df['Time (Hour-Minute-Second)'] = pd.NA
     df['Elevation (Feet)'] = df['Elevation (Meters)'] * 3.280839895
@@ -80,6 +80,7 @@ def convert(df):
     df['Distance (Kilometers)'] = df['Distance (Meters)'] / 1000
     df['Distance (Miles)'] = df['Distance (Meters)'] / 1609.344
     df['Pace (Minutes / Mile)'] = pd.NA
+    df['Pace (Numeric)'] = pd.NA
 
     for index, value in enumerate(df['Time (Seconds)']):
         hours = value // 3600
@@ -123,6 +124,13 @@ def convert(df):
                                                                 second=seconds)
 
             print(f'Iterr: {index}, Value: {value}')
+    
+    df['Pace (Minutes / Mile)'] = pd.to_datetime(df['Pace (Minutes / Mile)'])
+    df_hour = df['Pace (Minutes / Mile)'].dt.hour
+    df_minutes = df['Pace (Minutes / Mile)'].dt.minute
+    df_second = df['Pace (Minutes / Mile)'].dt.second
+    
+    df['Pace (Numeric)'] = df_hour + (df_minute / 60) + (df_second / 3600)
 
     df = df[cols]
 
