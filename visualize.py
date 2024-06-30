@@ -1,12 +1,11 @@
 import pandas as pd
+import numpy as np
+import math
 import folium
 import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-os.chdir('..')
-os.chdir(os.getcwd() + '\\csv')
+from datetime import datetime, timedelta
 
 
 def customizable_lineplot(x, y,
@@ -48,76 +47,145 @@ def customizable_lineplot(x, y,
         plt.show()
 
 
-def plot_route(df, date=None, start_zoom=15, filename=None, variance_factor=5):
+def plot_route(filename=None, date=None, start_zoom=15, exp_name=None):
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
+
+    df = pd.read_csv(filename)
+
     if date is not None:
         df = df[df['Date'] == date]
 
-    m_hr = folium.Map(location=[df['Latitude'].iloc[0],
-                                df['Longitude'].iloc[0]],
-                      zoom_start=start_zoom)
-    m_p = folium.Map(location=[df['Latitude'].iloc[0],
-                               df['Longitude'].iloc[0]],
-                     zoom_start=start_zoom)
-    m_el = folium.Map(location=[df['Latitude'].iloc[0],
-                                df['Longitude'].iloc[0]],
-                      zoom_start=start_zoom)
+    m = folium.Map(
+        location=[df['Latitude'].iloc[0], df['Longitude'].iloc[0]],
+        zoom_start=start_zoom)
 
+    fg_hr = folium.FeatureGroup(name='Heart Rate')
+    fg_pace = folium.FeatureGroup(name='Pace')
+    fg_el = folium.FeatureGroup(name='Elevation')
+
+    distance = df['Distance (Miles)']
     heart_rates = df['Heart Rate']
     pace = df['Pace (Numeric)']
-    el = df['Elevation Change (Meters)']
+    pace_org = pace.copy()
+    pace_dt = df['Pace (Minutes / Mile)']
+    el = df['Elevation (Feet)']
 
-    print(f"Heart Rate Range: {heart_rates.min()} - {heart_rates.max()}")
-    print(f"Pace Range: {pace.min()} - {pace.max()}")
-    print(f"Elevation Change Range: {el.min()} - {el.max()}")
+    pace_mean = pace.mean()
+    pace_q1 = np.percentile(pace, 0.1)
+    pace_q3 = np.percentile(pace, 98.7)
+
+    for index, val in enumerate(pace):
+        if not (pace_q1 < val < pace_q3):
+            pace.at[index] = pace_mean
+        pace.at[index] = pace.at[index] * -1
 
     norm_hr = plt.Normalize(vmin=heart_rates.min(), vmax=heart_rates.max())
-    pace_mean = pace.mean()
-    el_mean = el.mean()
-
-    norm_pace = plt.Normalize(
-        vmin=pace_mean - variance_factor * (pace_mean - pace.min()),
-        vmax=pace_mean + variance_factor * (pace.max() - pace_mean))
-    norm_el = plt.Normalize(
-        vmin=el_mean - variance_factor * (el_mean - el.min()),
-        vmax=el_mean + variance_factor * (el.max() - el_mean))
+    norm_p = plt.Normalize(vmin=pace.min(), vmax=pace.max())
+    norm_el = plt.Normalize(vmin=el.min(), vmax=el.max())
 
     cmap = plt.get_cmap('coolwarm')
 
     for i in range(len(df) - 1):
+        # Add PolyLines for each plot type
         color = cmap(norm_hr(heart_rates.iloc[i]))
         color = mcolors.to_hex(color)
-        folium.PolyLine(
+        poly_hr = folium.PolyLine(
             locations=[(df.iloc[i]['Latitude'], df.iloc[i]['Longitude']),
                        (df.iloc[i + 1]['Latitude'],
                         df.iloc[i + 1]['Longitude'])],
             color=color,
-            weight=5
-        ).add_to(m_hr)
+            weight=5,
+            tooltip=folium.Tooltip(f"Heart Rate: {heart_rates.iloc[i]}")
+        )
+        poly_hr.add_to(fg_hr)
 
-        color = cmap(norm_pace(pace.iloc[i]))
+        color = cmap(norm_p(pace.iloc[i]))
         color = mcolors.to_hex(color)
-        folium.PolyLine(
+        poly_pace = folium.PolyLine(
             locations=[(df.iloc[i]['Latitude'], df.iloc[i]['Longitude']),
                        (df.iloc[i + 1]['Latitude'],
                         df.iloc[i + 1]['Longitude'])],
             color=color,
-            weight=5
-        ).add_to(m_p)
+            weight=5,
+            tooltip=folium.Tooltip(f"Pace: {pace_dt.iloc[i]}")
+        )
+        poly_pace.add_to(fg_pace)
 
         color = cmap(norm_el(el.iloc[i]))
         color = mcolors.to_hex(color)
-        folium.PolyLine(
+        poly_el = folium.PolyLine(
             locations=[(df.iloc[i]['Latitude'], df.iloc[i]['Longitude']),
                        (df.iloc[i + 1]['Latitude'],
                         df.iloc[i + 1]['Longitude'])],
             color=color,
-            weight=5
-        ).add_to(m_el)
+            weight=5,
+            tooltip=folium.Tooltip(f"Elevation: {el.iloc[i]}")
+        )
+        poly_el.add_to(fg_el)
 
-    m_hr.save(os.getcwd() + '\\' + 'hr.html')
-    m_p.save(os.getcwd() + '\\' + 'p.html')
-    m_el.save(os.getcwd() + '\\' + 'el.html')
+        if (distance[i] > 0 and
+                (math.floor(distance[i]) - math.floor(distance[i - 1]) == 1)):
+            avg_hr = heart_rates.iloc[:i + 1].mean()
+            avg_pace = pace_org.iloc[:i + 1].mean()
+            avg_el = el.iloc[:i + 1].mean()
 
+            avg_minutes = 60 * (avg_pace - math.floor(avg_pace))
+            avg_seconds = math \
+                .floor(60 * (avg_minutes - math.floor(avg_minutes)))
+            avg_minutes = math.floor(avg_minutes)
 
-df = pd.read_csv('June 1.csv')
-plot_route(df=df, filename='June 1.html')
+            avg_pace_str = timedelta(hours=0,
+                                     minutes=avg_minutes,
+                                     seconds=avg_seconds)
+            avg_pace_str = str(avg_pace_str)
+
+            marker_hr = folium.Marker(
+                location=[df.iloc[i]['Latitude'], df.iloc[i]['Longitude']],
+                popup=folium.Popup(
+                    f"Distance: {math.floor(distance[i])} mi, "
+                    f"Avg Heart Rate: {avg_hr:.2f} bpm, "
+                    f"Avg Pace: {avg_pace_str} min/mile, "
+                    f"Avg Elevation: {avg_el:.2f} ft",
+                    max_width=500
+                )
+            )
+            marker_hr.add_to(fg_hr)
+
+            marker_pace = folium.Marker(
+                location=[df.iloc[i]['Latitude'], df.iloc[i]['Longitude']],
+                popup=folium.Popup(
+                    f"Distance: {math.floor(distance[i])} mi, "
+                    f"Avg Heart Rate: {avg_hr:.2f} bpm, "
+                    f"Avg Pace: {avg_pace_str} min/mile, "
+                    f"Avg Elevation: {avg_el:.2f} ft",
+                    max_width=500
+                )
+            )
+            marker_pace.add_to(fg_pace)
+
+            marker_el = folium.Marker(
+                location=[df.iloc[i]['Latitude'], df.iloc[i]['Longitude']],
+                popup=folium.Popup(
+                    f"Distance: {math.floor(distance[i])} mi, "
+                    f"Avg Heart Rate: {avg_hr:.2f} bpm, "
+                    f"Avg Pace: {avg_pace_str} min/mile, "
+                    f"Avg Elevation: {avg_el:.2f} ft",
+                    max_width=500
+                )
+            )
+            marker_el.add_to(fg_el)
+
+    fg_hr.add_to(m)
+    fg_pace.add_to(m)
+    fg_el.add_to(m)
+
+    folium.LayerControl().add_to(m)
+
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\visualize\\routes')
+
+    if exp_name:
+        m.save(os.path.join(os.getcwd(), exp_name))
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
