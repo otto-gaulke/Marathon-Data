@@ -1,7 +1,9 @@
+import pandas as pd
 import os
 import time
 import datetime
 import data_combine as dc
+import visualize as v
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -323,7 +325,124 @@ def edit():
 
 
 def analyze():
-    print('\nIn dev...')
+    print('\nAnalyze...')
+
+    os.chdir('..')
+    os.chdir(os.getcwd() + '\\csv')
+
+    files = os.listdir()
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    while True:
+        print('\nWould you like to map data, plot data, or create a '
+              'new dataframe?')
+        ans_ana = input('Enter map, plot, or dataframe: ')
+
+        accept = ['map', 'plot', 'dataframe']
+
+        if ans_ana not in accept:
+            print('\nInvalid entry...')
+            continue
+        else:
+            break
+
+    if ans_ana == 'map':
+        while True:
+            filename = input('\nEnter the name of the '
+                             'main data file (ending in .csv): ')
+
+            if filename[-4:] != '.csv':
+                print('\nInvalid entry...')
+                continue
+
+            if filename not in files:
+                print('\nInvalid entry...')
+                continue
+            else:
+                break
+
+        os.chdir('..')
+        os.chdir(os.getcwd() + '\\csv')
+
+        dates_full = pd.read_csv(filename)['Date'].unique()
+
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+        while True:
+            dates = input('\nEnter the dates of runs to map '
+                          '(in MM/DD/YYYY format, '
+                          '\ncomma separated without spaces): ')
+
+            dates = dates.split(',').strip(' ')
+
+            check = True
+
+            for date in dates:
+                if not(date[2] == '/' and date[5] == '/'):
+                    check = False
+                    continue
+
+                month, day, year = date[0:2], date[3:5], date[6:10]
+
+                int_check = [month, day, year]
+
+                for index, val in enumerate(int_check):
+                    try:
+                        int_check[index] = int(val)
+                    except:
+                        check = False
+                        continue
+
+                if check is False:
+                    continue
+
+                if not(0 < int_check[0] < 13 and 0 < int_check[1] < 31
+                   and 0 < int_check[2] < 10000):
+                    check = False
+                    continue
+
+                try:
+                    test_date = dt.datetime(year=year, month=month, day=day) \
+                        .date().strftime('%Y-%m-%d')
+                except:
+                    check = False
+                    continue
+
+                if test_date not in dates_full:
+                    check = False
+                    continue
+
+            if check is False:
+                print('\nInvalid entry...')
+                continue
+            else:
+                break
+
+        while True:
+            exp = input('\nEnter the desired names for the files in an '
+                        'order corresponding to the date entry '
+                        '\n(ending in .html, comma '
+                        'separated without spaces): ')
+
+            exp = exp.split(',').strip(' ')
+
+            if len(exp) != len(dates):
+                print('\nInvalid entry...')
+                continue
+
+            check = True
+
+            for file in exp:
+                if file[-5:] != '.html':
+                    check = False
+                    continue
+
+            if check is False:
+                print('\nInvalid entry...')
+                continue
+            else:
+                break
 
 
 main()
