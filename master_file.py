@@ -13,9 +13,12 @@ def main(first=True):
         print('Hello!')
 
     while True:
-        create_edit_analyze = input('\nEnter create, edit, analyze: ')
+        print('''\nWould you like to parse .tcx data into .csv's (a),
+edit existing .csv's (b), or visualize/analyze data (c)?''')
 
-        accept = ['create', 'edit', 'analyze']
+        create_edit_analyze = input('\nEnter a, b, or c: ')
+
+        accept = ['a', 'b', 'c']
 
         if create_edit_analyze not in accept:
             print('\nInvalid entry...')
@@ -23,11 +26,11 @@ def main(first=True):
         else:
             break
 
-    if create_edit_analyze == 'create':
+    if create_edit_analyze == 'a':
         create()
-    elif create_edit_analyze == 'edit':
+    elif create_edit_analyze == 'b':
         edit()
-    elif create_edit_analyze == 'analyze':
+    elif create_edit_analyze == 'c':
         analyze()
 
     while True:
@@ -54,11 +57,12 @@ def create():
     print('\nCreate...')
 
     while True:
-        print('Would you like to parse all .tcx data into a main file, '
-              '\nor parse .tcx data into separate files?')
-        main_separate = input('\nEnter main or separate: ')
+        print('''\nWould you like to parse all .tcx data into a main file (a),
+or parse .tcx data into separate files (b)?''')
 
-        accept = ['main', 'separate']
+        main_separate = input('\nEnter a or b: ')
+
+        accept = ['a', 'b']
 
         if main_separate not in accept:
             print('\nInvalid entry...')
@@ -66,7 +70,7 @@ def create():
         else:
             break
 
-    if main_separate == 'main':
+    if main_separate == 'a':
         while True:
             exp = input('\nEnter desired file name (ending in .csv): ')
 
@@ -79,7 +83,7 @@ def create():
         print('\nProcessing data...')
 
         dc.combine_all(exp_name=exp)
-    else:
+    elif main_separate == 'b':
         while True:
             print("\nWould you like to parse all .tcx's?")
             parse_all = input('\nEnter yes or no: ')
@@ -92,14 +96,13 @@ def create():
             else:
                 break
 
+        os.chdir('..')
+        os.chdir(os.getcwd() + '\\tcx')
+        files = os.listdir(os.getcwd())
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
         if parse_all == 'yes':
-            os.chdir('..')
-            os.chdir(os.getcwd() + '\\tcx')
-
-            files = os.listdir(os.getcwd())
             exp = [x.rstrip('tcx') + 'csv' for x in files]
-
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
             dc.single_file(exp_name=exp,
                            tcx=files)
@@ -112,17 +115,10 @@ def create():
                 tcx = tcx.split(',')
                 tcx = [x.strip(' ') for x in tcx]
 
-                os.chdir('..')
-                os.chdir(os.getcwd() + '\\tcx')
-
-                file_check = os.listdir(os.getcwd())
-
-                os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
                 check = True
 
                 for file in tcx:
-                    if file[-4:] != '.tcx' or file not in file_check:
+                    if file[-4:] != '.tcx' or file not in files:
                         check = False
 
                 if check is False:
@@ -378,7 +374,7 @@ def analyze():
 
             check = True
 
-            for date in dates:
+            for index, date in enumerate(dates):
                 if not(date[2] == '/' and date[5] == '/'):
                     check = False
                     continue
@@ -413,6 +409,8 @@ def analyze():
                     check = False
                     continue
 
+                dates[index] = test_date
+
             if check is False:
                 print('\nInvalid entry...')
                 continue
@@ -444,5 +442,7 @@ def analyze():
             else:
                 break
 
+    for index, date in enumerate(dates):
+        v.plot_route(filename=filename, date=date, exp_name=exp[index])
 
 main()
