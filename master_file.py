@@ -62,9 +62,9 @@ def create():
         print('''\nHow would you like to parse the .tcx data?
 a) Parse all .tcx data into a single main file
 b) Parse .tcx data into separate files''')
-        main_separate = input('\nEnter a or b: ')
+        main_separate = input('\nEnter a, b, or cancel: ')
 
-        accept = ['a', 'b']
+        accept = ['a', 'b', 'cancel']
 
         if main_separate not in accept:
             print('\nInvalid entry...')
@@ -72,7 +72,10 @@ b) Parse .tcx data into separate files''')
         else:
             break
 
-    if main_separate == 'a':
+    if main_separate == 'cancel':
+        print('\nCancel...')
+        return
+    elif main_separate == 'a':
         print('\nCreate main file...')
         create_main()
     elif main_separate == 'b':
@@ -96,14 +99,23 @@ b) Parse .tcx data into separate files''')
 
 
 def create_main():
+    cancel = False
+
     while True:
         exp = input('\nEnter desired export filename (ending in .csv): ')
 
-        if exp[-4:] != '.csv':
+        if exp == 'cancel':
+            cancel = True
+            break
+        elif exp[-4:] != '.csv':
             print('\nIncorrect extention...')
             continue
         else:
             break
+
+    if cancel is True:
+        print('\nCancel...')
+        return
 
     print('\nProcessing data...')
 
@@ -111,19 +123,25 @@ def create_main():
 
 
 def create_separate():
+    cancel = False
+
     while True:
         print('''\nHow would you like to parse the .tcx files?
 a) Parse all .tcx's into separate files
 b) Parse specific .tcx's into separate files''')
-        all_specific = input('\nEnter a or b: ')
+        all_specific = input('\nEnter a, b, or cancel: ')
 
-        accept = ['a', 'b']
+        accept = ['a', 'b', 'cancel']
 
         if all_specific not in accept:
             print('\nInvalid entry...')
             continue
         else:
             break
+
+    if all_specific == 'cancel':
+        print('\nCancel...')
+        return
 
     os.chdir('..')
     os.chdir(os.getcwd() + '\\tcx')
@@ -132,6 +150,8 @@ b) Parse specific .tcx's into separate files''')
 
     if all_specific == 'a':
         exp = [x.rstrip('tcx') + 'csv' for x in files]
+
+        print('\nProcessing data...')
 
         dc.single_file(exp_name=exp,
                        tcx=files)
@@ -147,12 +167,16 @@ b) Parse specific .tcx's into separate files''')
             check_exist = True
 
             for file in tcx:
-                if file[-4:] != '.tcx':
+                if file == 'cancel':
+                    cancel = True
+                elif file[-4:] != '.tcx':
                     check_extention = False
                 elif file not in files:
                     check_exist = False
 
-            if check_extention is False:
+            if cancel is True:
+                break
+            elif check_extention is False:
                 print('\nInvalid extention...')
                 continue
             elif check_exist is False:
@@ -160,6 +184,10 @@ b) Parse specific .tcx's into separate files''')
                 continue
             else:
                 break
+
+        if cancel is True:
+            print('\nCancel...')
+            return
 
         while True:
             exp = input('\nEnter the desired export filenames (ending in '
@@ -171,18 +199,28 @@ b) Parse specific .tcx's into separate files''')
             check = True
 
             for file in exp:
-                if file[-4:] != '.csv':
+                if file == 'cancel':
+                    cancel = True
+                elif file[-4:] != '.csv':
                     check = False
                     continue
 
-            if check is False:
+            if cancel is True:
+                break
+            elif check is False:
                 print('\nInvalid extention...')
                 continue
-            elif len(tcx) != len(exp):
+            elif cancel is False and len(tcx) != len(exp):
                 print('\nInvalid entry...')
                 continue
             else:
                 break
+
+        if cancel is True:
+            print('\nCancel...')
+            return
+
+        print('\nProcessing data...')
 
         dc.single_file(exp_name=exp,
                        tcx=tcx)
@@ -193,9 +231,9 @@ def edit():
         print('''\nHow would you like to edit?
 a) Add .tcx data to an existing file
 b) Add a custom entry to an existing file''')
-        add_custom = input('\nEnter a or b: ')
+        add_custom = input('\nEnter a, b, or cancel: ')
 
-        accept = ['a', 'b']
+        accept = ['a', 'b', 'cancel']
 
         if add_custom not in accept:
             print('\nInvalid entry...')
@@ -203,7 +241,9 @@ b) Add a custom entry to an existing file''')
         else:
             break
 
-    if add_custom == 'a':
+    if add_custom == 'cancel':
+        return
+    elif add_custom == 'a':
         edit_add()
     elif add_custom == 'b':
         edit_custom()
@@ -225,6 +265,8 @@ b) Add a custom entry to an existing file''')
 
 
 def edit_add():
+    cancel = False
+
     while True:
         filename = input('\nEnter the filename to edit (ending in .csv): ')
 
@@ -233,7 +275,10 @@ def edit_add():
         files = os.listdir(os.getcwd())
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-        if filename[-4:] != '.csv':
+        if filename == 'cancel':
+            cancel = True
+            break
+        elif filename[-4:] != '.csv':
             print('\nInvalid entry...')
             continue
         elif filename not in files:
@@ -242,14 +287,24 @@ def edit_add():
         else:
             break
 
+    if cancel is True:
+        print('\nCancel...')
+        return
+
     while True:
         exp = input('\nEnter the desired export filename (ending in .csv): ')
 
-        if exp[-4:] != '.csv':
+        if exp == 'cancel':
+            cancel = True
+            break
+        elif exp[-4:] != '.csv':
             print('\nInvalid entry...')
             continue
         else:
             break
+
+    if cancel is True:
+        return
 
     while True:
         tcx = input('\nEnter the .tcx filenames to add (ending in .tcx): ')
@@ -266,12 +321,16 @@ def edit_add():
         check_exist = True
 
         for file in tcx:
-            if file[-4:] != '.tcx':
+            if file == 'cancel':
+                cancel = True
+            elif file[-4:] != '.tcx':
                 check_extention = False
             elif file not in files:
                 check_exist = False
 
-        if check_extention is False:
+        if cancel is True:
+            break
+        elif check_extention is False:
             print('\nInvalid extention...')
             continue
         elif check_exist is False:
@@ -280,12 +339,20 @@ def edit_add():
         else:
             break
 
+    if cancel is True:
+        print('\nCancel...')
+        return
+
+    print('\nProcessing Data...')
+
     dc.add_data(filename=filename,
                 exp_name=exp,
                 tcx=tcx)
 
 
 def edit_custom():
+    cancel = False
+
     while True:
         filename = input('\nEnter the filename to edit (ending in .csv): ')
 
@@ -294,7 +361,10 @@ def edit_custom():
         files = os.listdir(os.getcwd())
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-        if filename[-4:] != '.csv':
+        if filename == 'cancel':
+            cancel = True
+            break
+        elif filename[-4:] != '.csv':
             print('\nInvalid extention...')
             continue
         elif filename not in files:
@@ -303,14 +373,25 @@ def edit_custom():
         else:
             break
 
+    if cancel is True:
+        print('\nCancel...')
+        return
+
     while True:
         exp = input('\nEnter the desired export filename (ending in .csv): ')
 
-        if exp[-4:] != '.csv':
+        if exp == 'cancel':
+            cancel = True
+            break
+        elif exp[-4:] != '.csv':
             print('\nInvalid extention...')
             continue
         else:
             break
+
+    if cancel is True:
+        print('\nCancel...')
+        return
 
     while True:
         print('''\nEnter the following:
@@ -325,12 +406,18 @@ def edit_custom():
         entry_raw = entry_raw.split(',')
         entry_raw = [x.strip(' ') for x in entry_raw]
 
-        try:
-            date_raw, time_raw = entry_raw[0], entry_raw[1]
-            pace_raw, distance, hr = entry_raw[2], entry_raw[3], entry_raw[4]
-        except:
-            print('\nInvalid entry...')
+        for entry in entry_raw:
+            if entry == 'cancel':
+                cancel = True
+
+        if cancel is True:
+            break
+        elif len(entry_raw) != 5:
+            print('\nIncomplete entry...')
             continue
+
+        date_raw, time_raw = entry_raw[0], entry_raw[1]
+        pace_raw, distance, hr = entry_raw[2], entry_raw[3], entry_raw[4]
 
         if date_raw[2] != '/' or date_raw[5] != '/':
             print('\nInvalid date format...')
@@ -362,7 +449,7 @@ def edit_custom():
                 continue
 
         if check is False:
-            print(f'\n{int_false[0]} not integer...')
+            print(f'\n{int_check[int_false[0]]} not integer...')
             continue
 
         if not (0 < int_check[0] < 13):
@@ -419,6 +506,10 @@ def edit_custom():
 
         break
 
+    if cancel is True:
+        print('\nCancel...')
+        return
+
     dc.data_entry(filename=filename, exp_name=exp, month=int_check[0],
                   day=int_check[1], year=int_check[2],
                   hours=int_check[3], minutes=int_check[4],
@@ -448,9 +539,9 @@ def analyze():
 a) Map data
 b) Query data
 c) Plot data''')
-        map_query_plot = input('\nEnter a, b, or c: ')
+        map_query_plot = input('\nEnter a, b, c, or cancel: ')
 
-        accept = ['a', 'b', 'c']
+        accept = ['a', 'b', 'c', 'cancel']
 
         if map_query_plot not in accept:
             print('\nInvalid entry...')
@@ -458,7 +549,10 @@ c) Plot data''')
         else:
             break
 
-    if map_query_plot == 'a':
+    if map_query_plot == 'cancel':
+        print('\nCancel...')
+        return
+    elif map_query_plot == 'a':
         analyze_map()
 
     while True:
@@ -482,9 +576,9 @@ def analyze_map():
         print('''\nHow would you like to map the data?
 a) Map data from a main file
 b) Map data from separate files''')
-        map_main_separate = input('\nEnter a or b: ')
+        map_main_separate = input('\nEnter a, b, or cancel: ')
 
-        accept = ['a', 'b']
+        accept = ['a', 'b', 'cancel']
 
         if map_main_separate not in accept:
             print('\nInvalid entry...')
@@ -492,13 +586,18 @@ b) Map data from separate files''')
         else:
             break
 
-    if map_main_separate == 'a':
+    if map_main_separate == 'cancel':
+        print('\nCancel...')
+        return
+    elif map_main_separate == 'a':
         analyze_map_main()
     elif map_main_separate == 'b':
         analyze_map_separate()
 
 
 def analyze_map_main():
+    cancel = False
+
     os.chdir('..')
     os.chdir(os.getcwd() + '\\csv')
     files = os.listdir(os.getcwd())
@@ -506,7 +605,10 @@ def analyze_map_main():
     while True:
         filename = input('\nEnter the filename to edit (ending in .csv): ')
 
-        if filename[-4:] != '.csv':
+        if filename == 'cancel':
+            cancel = True
+            break
+        elif filename[-4:] != '.csv':
             print('\nInvalid extention...')
             continue
         elif filename not in files:
@@ -525,13 +627,17 @@ def analyze_map_main():
         else:
             break
 
+    if cancel is True:
+        print('\nCancel...')
+        return
+
     while True:
         print('''\nHow would you like to map data from the main file?
 a) Map all dates in the main file
 b) Map specific dates in the main file''')
-        main_all_specific = input('\nEnter a or b: ')
+        main_all_specific = input('\nEnter a, b, or cancel: ')
 
-        accept = ['a', 'b']
+        accept = ['a', 'b', 'cancel']
 
         if main_all_specific not in accept:
             print('\nInvalid entry...')
@@ -539,7 +645,12 @@ b) Map specific dates in the main file''')
         else:
             break
 
-    if main_all_specific == 'a':
+    if main_all_specific == 'cancel':
+        print('\nCancel...')
+        return
+    elif main_all_specific == 'a':
+        print('\nProcess Data...')
+
         v.plot_route(filename=[filename])
     elif main_all_specific == 'b':
         while True:
@@ -549,9 +660,17 @@ b) Map specific dates in the main file''')
             dates = dates.split(',')
             dates = [x.strip(' ') for x in dates]
 
+            for date in dates:
+                if date == 'cancel':
+                    cancel = True
+
+            if cancel is True:
+                break
+
             check = True
 
             for date in dates:
+
                 if date[2] != '/' or date[5] != '/':
                     error = '\nInvalid date format...'
                     check = False
@@ -571,7 +690,7 @@ b) Map specific dates in the main file''')
                         continue
 
                 if check is False:
-                    error = f'\n{int_false[0]} not integer...'
+                    error = f'\n{int_check[int_false[0]]} not integer...'
                     break
 
                 if not (0 < int_check[0] < 13):
@@ -587,7 +706,10 @@ b) Map specific dates in the main file''')
                     check = False
                     break
 
-                if date not in dates_check:
+                date_form = datetime.datetime \
+                    .strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+
+                if date_form not in dates_check:
                     error = '\nDate does not exist...'
                     check = False
                     break
@@ -598,10 +720,16 @@ b) Map specific dates in the main file''')
             else:
                 break
 
+        if cancel is True:
+            print('\nCancel...')
+            return
+
         v.plot_route(filename=[filename], dates=dates)
 
 
 def analyze_map_separate():
+    cancel = False
+
     os.chdir('..')
     os.chdir(os.getcwd() + '\\csv')
     files = os.listdir(os.getcwd())
@@ -613,14 +741,23 @@ def analyze_map_separate():
         filename = filename.split(',')
         filename = [x.strip(' ') for x in filename]
 
+        for file in filename:
+            if file == 'cancel':
+                cancel = True
+
+        if cancel is True:
+            break
+
         check = True
 
         for file in filename:
             if file[-4:] != '.csv':
                 error = '\nInvalid extention...'
+                check = False
                 continue
-            elif filename not in files:
+            elif file not in files:
                 error = '\nFile does not exist...'
+                check = False
                 continue
 
             df = pd.read_csv(file)
@@ -629,6 +766,7 @@ def analyze_map_separate():
 
             if len(dates_check) >= 2:
                 error = '\nFile not a separate file...'
+                check = False
                 continue
             else:
                 break
@@ -640,6 +778,10 @@ def analyze_map_separate():
             break
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    if cancel is True:
+        print('\nCancel...')
+        return
 
     v.plot_route(filename=filename)
 
